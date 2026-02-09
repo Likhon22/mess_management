@@ -1,0 +1,175 @@
+'use client';
+
+import React, { useMemo } from 'react';
+import {
+    format,
+    eachDayOfInterval,
+    startOfMonth,
+    endOfMonth,
+    getDate,
+    isSameDay
+} from 'date-fns';
+import { DailyMeal, Bazar } from '@/types/finance';
+import { MessMember } from '@/services/mess.service';
+
+interface MealGridProps {
+    messId: string;
+    month: string; // YYYY-MM
+    members: MessMember[];
+    meals: DailyMeal[];
+    bazars: Bazar[];
+    onUpdateMeals: (meals: DailyMeal[]) => void;
+    isEditable?: boolean;
+    onBazarClick?: (date: Date) => void;
+}
+
+export default function MealGrid({ messId, month, members, meals, bazars, onUpdateMeals, isEditable = true, onBazarClick }: MealGridProps) {
+    const days = useMemo(() => {
+        const start = startOfMonth(new Date(month + '-01'));
+        const end = endOfMonth(start);
+        return eachDayOfInterval({ start, end });
+    }, [month]);
+
+    const getDailyBazarTotal = (date: Date) => {
+        return (bazars || [])
+            .filter(b => b.date && isSameDay(new Date(b.date), date) && b.status === 'approved')
+            .reduce((sum, b) => sum + b.amount, 0);
+    };
+
+    const getMealValue = (userId: string, date: Date, type: 'breakfast' | 'lunch' | 'dinner') => {
+        const meal = (meals || []).find(m => m.user_id === userId && m.date && isSameDay(new Date(m.date), date));
+        if (!meal) return '';
+        const val = type === 'breakfast' ? meal.breakfast : (type === 'lunch' ? meal.lunch : meal.dinner);
+        return val === 0 ? '' : val.toString();
+    };
+
+    const handleMealChange = (userId: string, date: Date, type: 'breakfast' | 'lunch' | 'dinner', value: string) => {
+        if (!isEditable) return;
+
+        const numVal = parseFloat(value) || 0;
+        const normalizedDate = format(date, 'yyyy-MM-dd');
+
+        // Find existing meal or create new
+        const existingMealIndex = (meals || []).findIndex(m => m.user_id === userId && m.date && format(new Date(m.date), 'yyyy-MM-dd') === normalizedDate);
+
+        let updatedMeals = [...(meals || [])];
+        if (existingMealIndex > -1) {
+            updatedMeals[existingMealIndex] = {
+                ...updatedMeals[existingMealIndex],
+                [type]: numVal
+            };
+        } else {
+            updatedMeals.push({
+                user_id: userId,
+                date: new Date(normalizedDate).toISOString(),
+                breakfast: type === 'breakfast' ? numVal : 0,
+                lunch: type === 'lunch' ? numVal : 0,
+                dinner: type === 'dinner' ? numVal : 0,
+                month: month,
+                mess_id: messId
+            } as DailyMeal);
+        }
+
+        onUpdateMeals(updatedMeals);
+    };
+
+    return (
+        <div className="relative overflow-x-auto bg-white rounded-xl shadow-md border border-gray-400 h-[650px]">
+            <table className="min-w-full border-separate border-spacing-0 text-[11px]">
+                <thead className="sticky top-0 z-30">
+                    <tr className="bg-gray-900 text-white">
+                        <th className="border-b border-r border-gray-700 px-2 py-3 sticky left-0 z-40 bg-gray-900 min-w-[50px]">
+                            Date
+                        </th>
+                        {members.map(member => (
+                            <th key={member.user_id} colSpan={3} className="border-b border-r border-gray-700 px-1 py-3 text-center truncate max-w-[100px] font-black uppercase tracking-tighter text-emerald-400">
+                                {member.user_name || member.user_id.slice(0, 6)}
+                            </th>
+                        ))}
+                        <th className="border-b border-gray-700 px-2 py-3 bg-amber-600 sticky right-0 z-40 text-amber-50">Bazar</th>
+                    </tr>
+                    <tr className="bg-gray-100 text-gray-900 shadow-sm font-bold">
+                        <th className="border-b border-r border-gray-300 px-1 py-1 sticky left-0 z-40 bg-gray-100 italic">DATE</th>
+                        {members.map(member => (
+                            <React.Fragment key={`${member.user_id}-bld`}>
+                                <th className="border-b border-r border-gray-300 px-0.5 py-1 w-8 text-center">B</th>
+                                <th className="border-b border-r border-gray-300 px-0.5 py-1 w-8 text-center">L</th>
+                                <th className="border-b border-r border-gray-300 px-0.5 py-1 w-8 text-center">D</th>
+                            </React.Fragment>
+                        ))}
+                        <th className="border-b border-gray-300 px-1 py-1 sticky right-0 z-40 bg-gray-100">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-300">
+                    {days.map(day => {
+                        const bazarTotal = getDailyBazarTotal(day);
+                        return (
+                            <tr key={day.toISOString()} className="hover:bg-emerald-50 transition-colors group">
+                                <td className="border-b border-r border-gray-300 px-2 py-1.5 text-center font-black sticky left-0 z-20 bg-white group-hover:bg-emerald-50 transition-colors text-gray-900 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                                    {getDate(day)}
+                                </td>
+                                {members.map(member => (
+                                    <React.Fragment key={`${day.toISOString()}-${member.user_id}`}>
+                                        <td className="border-b border-r border-gray-300 p-0 text-center relative">
+                                            <input
+                                                type="text"
+                                                inputMode="decimal"
+                                                className="w-full h-8 text-center focus:bg-emerald-200 focus:outline-none bg-transparent font-bold text-gray-900"
+                                                value={getMealValue(member.user_id, day, 'breakfast')}
+                                                onChange={(e) => handleMealChange(member.user_id, day, 'breakfast', e.target.value)}
+                                                disabled={!isEditable}
+                                            />
+                                        </td>
+                                        <td className="border-b border-r border-gray-300 p-0 text-center relative">
+                                            <input
+                                                type="text"
+                                                inputMode="decimal"
+                                                className="w-full h-8 text-center focus:bg-emerald-200 focus:outline-none bg-transparent font-bold text-gray-900"
+                                                value={getMealValue(member.user_id, day, 'lunch')}
+                                                onChange={(e) => handleMealChange(member.user_id, day, 'lunch', e.target.value)}
+                                                disabled={!isEditable}
+                                            />
+                                        </td>
+                                        <td className="border-b border-r border-gray-300 p-0 text-center relative">
+                                            <input
+                                                type="text"
+                                                inputMode="decimal"
+                                                className="w-full h-8 text-center focus:bg-emerald-200 focus:outline-none bg-transparent font-bold text-gray-900"
+                                                value={getMealValue(member.user_id, day, 'dinner')}
+                                                onChange={(e) => handleMealChange(member.user_id, day, 'dinner', e.target.value)}
+                                                disabled={!isEditable}
+                                            />
+                                        </td>
+                                    </React.Fragment>
+                                ))}
+                                <td
+                                    className="border-b border-gray-300 px-2 py-1.5 text-center font-black text-gray-900 bg-amber-50 sticky right-0 z-20 group-hover:bg-amber-100 transition-colors cursor-pointer hover:bg-amber-200 hover:text-amber-900"
+                                    onClick={() => onBazarClick && onBazarClick(day)}
+                                >
+                                    {bazarTotal > 0 ? bazarTotal : '-'}
+                                </td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+                <tfoot className="sticky bottom-0 z-30 shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
+                    <tr className="bg-emerald-700 text-white font-black text-xs">
+                        <td className="border-r border-emerald-800 px-2 py-3 sticky left-0 z-40 bg-emerald-700">TOTAL</td>
+                        {(members || []).map(member => {
+                            const userMeals = (meals || []).filter(m => m.user_id === member.user_id && m.month === month);
+                            const total = userMeals.reduce((sum, m) => sum + m.breakfast + m.lunch + m.dinner, 0);
+                            return (
+                                <td key={`${member.user_id}-total`} colSpan={3} className="border-r border-emerald-800 px-1 py-3 text-center bg-emerald-800/20">
+                                    {total}
+                                </td>
+                            );
+                        })}
+                        <td className="px-2 py-3 sticky right-0 z-40 bg-amber-700 text-center text-amber-50">
+                            {(bazars || []).filter(b => b.status === 'approved').reduce((sum, b) => sum + b.amount, 0)}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    );
+}

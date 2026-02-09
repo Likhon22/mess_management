@@ -1,0 +1,813 @@
+{
+    "info": {
+        "name": "Amar Dera API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Signup",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Mahbub\",\n    \"phone\": \"01711111111\",\n    \"password\": \"123456\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/signup",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "signup"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "pm.environment.set(\"token\", jsonData.token);",
+                                    "pm.environment.set(\"user_id\", jsonData.user.id);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"phone\": \"01711111111\",\n    \"password\": \"123456\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Mess",
+            "item": [
+                {
+                    "name": "Create Mess",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Sky Follower\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/mess/create",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "mess",
+                                "create"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Join Mess",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"mess_id\": \"MESS_ID_HERE\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/mess/join",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "mess",
+                                "join"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Requests",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/mess/:id/requests",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "mess",
+                                ":id",
+                                "requests"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Approve Member",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"member_id\": \"USER_ID_TO_APPROVE\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/mess/:id/requests/approve",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "mess",
+                                ":id",
+                                "requests",
+                                "approve"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Assign Role",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"user_id\": \"USER_ID\",\n    \"role\": \"mess_manager\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/mess/:id/roles",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "mess",
+                                ":id",
+                                "roles"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "House (Fixed Costs)",
+            "item": [
+                {
+                    "name": "Get Costs",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/house/:id/costs?month=2026-02",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "house",
+                                ":id",
+                                "costs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "month",
+                                    "value": "2026-02"
+                                }
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Add Cost",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"mess_id\": \"MESS_ID_HERE\",\n    \"month\": \"2026-02\",\n    \"name\": \"WiFi\",\n    \"amount\": 1000\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/house/:id/costs",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "house",
+                                ":id",
+                                "costs"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Cost",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/house/:id/costs/:costId",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "house",
+                                ":id",
+                                "costs",
+                                ":costId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                },
+                                {
+                                    "key": "costId",
+                                    "value": "COST_ID"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Meals & Bazar",
+            "item": [
+                {
+                    "name": "Get Daily Meals",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/meals/:id/daily?month=2026-02",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "meals",
+                                ":id",
+                                "daily"
+                            ],
+                            "query": [
+                                {
+                                    "key": "month",
+                                    "value": "2026-02"
+                                }
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Batch Update Meals",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[\n    {\n        \"mess_id\": \"MESS_ID_HERE\",\n        \"user_id\": \"USER_ID\",\n        \"date\": \"2026-02-09T00:00:00Z\",\n        \"breakfast\": 1,\n        \"lunch\": 1,\n        \"dinner\": 1,\n        \"month\": \"2026-02\"\n    }\n]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/meals/:id/update",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "meals",
+                                ":id",
+                                "update"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Bazar",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"mess_id\": \"MESS_ID_HERE\",\n    \"buyer_id\": \"USER_ID\",\n    \"amount\": 500,\n    \"items\": \"Chicken, Veg\",\n    \"date\": \"2026-02-09T00:00:00Z\",\n    \"month\": \"2026-02\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/bazar/:id/entry",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "bazar",
+                                ":id",
+                                "entry"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Pending Bazars",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/bazar/:id/pending?month=2026-02",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "bazar",
+                                ":id",
+                                "pending"
+                            ],
+                            "query": [
+                                {
+                                    "key": "month",
+                                    "value": "2026-02"
+                                }
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Approve Bazar",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/bazar/:id/approve/:bazarId",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "bazar",
+                                ":id",
+                                "approve",
+                                ":bazarId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                },
+                                {
+                                    "key": "bazarId",
+                                    "value": "BAZAR_ID"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Payments",
+            "item": [
+                {
+                    "name": "Submit Payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"mess_id\": \"MESS_ID_HERE\",\n    \"user_id\": \"USER_ID\",\n    \"amount\": 2000,\n    \"type\": \"house\",\n    \"month\": \"2026-02\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/payments/:id/submit",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "payments",
+                                ":id",
+                                "submit"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Pending Payments",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/payments/:id/pending?month=2026-02",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "payments",
+                                ":id",
+                                "pending"
+                            ],
+                            "query": [
+                                {
+                                    "key": "month",
+                                    "value": "2026-02"
+                                }
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Verify Payment",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/payments/:id/verify/:payId",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "payments",
+                                ":id",
+                                "verify",
+                                ":payId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                },
+                                {
+                                    "key": "payId",
+                                    "value": "PAYMENT_ID"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Summary",
+            "item": [
+                {
+                    "name": "Get Final Summary",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/summary/:id/final?month=2026-02",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "summary",
+                                ":id",
+                                "final"
+                            ],
+                            "query": [
+                                {
+                                    "key": "month",
+                                    "value": "2026-02"
+                                }
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "History (Unlock)",
+            "item": [
+                {
+                    "name": "Request Unlock",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/history/:id/unlock-request?month=2026-01",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "history",
+                                ":id",
+                                "unlock-request"
+                            ],
+                            "query": [
+                                {
+                                    "key": "month",
+                                    "value": "2026-01"
+                                }
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Requests",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/history/:id/pending-requests?month=2026-01",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "history",
+                                ":id",
+                                "pending-requests"
+                            ],
+                            "query": [
+                                {
+                                    "key": "month",
+                                    "value": "2026-01"
+                                }
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Set Lock Status",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"month\": \"2026-01\",\n    \"is_locked\": false,\n    \"duration_hours\": 24\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/history/:id/lock-status",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "history",
+                                ":id",
+                                "lock-status"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "MESS_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -153,3 +153,15 @@ func (h *MessHandler) GetMessDetails(c *gin.Context) {
 
 	utils.SendSuccess(c, http.StatusOK, "mess details", mess)
 }
+
+func (h *MessHandler) LeaveMess(c *gin.Context) {
+	messID := c.Param("id")
+	userID := c.GetString("userID")
+
+	if err := h.service.LeaveMess(c.Request.Context(), messID, userID); err != nil {
+		utils.SendError(c, http.StatusInternalServerError, err.Error(), err)
+		return
+	}
+
+	utils.SendSuccess(c, http.StatusOK, "successfully left the mess", nil)
+}

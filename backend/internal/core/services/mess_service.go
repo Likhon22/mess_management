@@ -310,6 +310,19 @@ func (s *MessService) AssignRole(ctx context.Context, messID, targetUserID, admi
 				m.Roles = append(m.Roles, role)
 			}
 			found = true
+		} else if role == domain.RoleManager {
+			// Only one manager allowed: remove from others
+			var newRoles []domain.Role
+			for _, r := range m.Roles {
+				if r != domain.RoleManager {
+					newRoles = append(newRoles, r)
+				}
+			}
+			// Maintain RoleMember if roles become empty
+			if len(newRoles) == 0 {
+				newRoles = append(newRoles, domain.RoleMember)
+			}
+			m.Roles = newRoles
 		}
 		updatedMembers = append(updatedMembers, m)
 	}
@@ -340,6 +353,27 @@ func (s *MessService) RemoveRole(ctx context.Context, messID, targetUserID, admi
 		return errors.New("unauthorized")
 	}
 
+	// Safety check: Prevent removing last admin/manager if others present
+	if role == domain.RoleAdmin || role == domain.RoleManager {
+		activeCount := 0
+		hasOtherOfRole := false
+		for _, m := range mess.Members {
+			if m.Status == "active" {
+				activeCount++
+				if m.UserID != targetUserID {
+					for _, r := range m.Roles {
+						if r == role {
+							hasOtherOfRole = true
+						}
+					}
+				}
+			}
+		}
+		if activeCount > 1 && !hasOtherOfRole {
+			return fmt.Errorf("cannot remove the last %s when other members are present. assign it to someone else first", role)
+		}
+	}
+
 	// Update Role
 	found := false
 	updatedMembers := []domain.Member{}
@@ -363,4 +397,107 @@ func (s *MessService) RemoveRole(ctx context.Context, messID, targetUserID, admi
 
 	mess.Members = updatedMembers
 	return s.repo.Update(ctx, mess)
+}
+
+func (s *MessService) LeaveMess(ctx context.Context, messID, userID string) error {
+	mess, err := s.repo.GetByID(ctx, messID)
+	if err != nil || mess == nil {
+		return errors.New("mess not found")
+	}
+
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil || user == nil {
+		return errors.New("user not found")
+	}
+
+	// 1. Find the member in the mess
+	var leavingMember *domain.Member
+	activeMemberCount := 0
+	for i, m := range mess.Members {
+		if m.Status == "active" {
+			activeMemberCount++
+			if m.UserID == userID {
+				leavingMember = &mess.Members[i]
+			}
+		}
+	}
+
+	if leavingMember == nil {
+		return errors.New("you are not an active member of this mess")
+	}
+
+	// 2. If others are present, enforce role safety
+	if activeMemberCount > 1 {
+		hasOtherAdmin := false
+		hasOtherManager := false
+
+		for _, m := range mess.Members {
+			if m.UserID != userID && m.Status == "active" {
+				for _, r := range m.Roles {
+					if r == domain.RoleAdmin {
+						hasOtherAdmin = true
+					}
+					if r == domain.RoleManager {
+						hasOtherManager = true
+					}
+				}
+			}
+		}
+
+		// Check Admin Role
+		isLeavingAdmin := false
+		for _, r := range leavingMember.Roles {
+			if r == domain.RoleAdmin {
+				isLeavingAdmin = true
+				break
+			}
+		}
+
+		if isLeavingAdmin && !hasOtherAdmin {
+			return errors.New("you are the only admin. Please assign another member as admin before leaving")
+		}
+
+		// Check Manager Role
+		isLeavingManager := false
+		for _, r := range leavingMember.Roles {
+			if r == domain.RoleManager {
+				isLeavingManager = true
+				break
+			}
+		}
+
+		if isLeavingManager && !hasOtherManager {
+			return errors.New("you are the only manager. Please assign another member as manager before leaving")
+		}
+	}
+
+	// 3. Mark as left in mess
+	for i, m := range mess.Members {
+		if m.UserID == userID {
+			mess.Members[i].Status = "left"
+			break
+		}
+	}
+
+	if err := s.repo.Update(ctx, mess); err != nil {
+		return err
+	}
+
+	// 4. Update User document
+	var updatedMesses []string
+	for _, mID := range user.Messes {
+		if mID != messID {
+			updatedMesses = append(updatedMesses, mID)
+		}
+	}
+	user.Messes = updatedMesses
+	if user.CurrentMessID == messID {
+		if len(updatedMesses) > 0 {
+			user.CurrentMessID = updatedMesses[0]
+		} else {
+			user.CurrentMessID = ""
+		}
+	}
+
+	return s.userRepo.Update(ctx, user)
 }

@@ -51,6 +51,7 @@ func NewRouter(
 				messGroup.PATCH("/:id/requests/approve", messHandler.ApproveMember)
 				messGroup.PATCH("/:id/roles", messHandler.AssignRole)
 				messGroup.DELETE("/:id/roles", messHandler.RemoveRole)
+				messGroup.POST("/:id/leave", messHandler.LeaveMess)
 			}
 
 			// Finance - House

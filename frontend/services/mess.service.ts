@@ -57,4 +57,7 @@ export const messService = {
         const { data } = await apiClient.get(`/mess/${messId}/details`);
         return data.data;
     },
+    async leaveMess(messId: string): Promise<void> {
+        await apiClient.post(`/mess/${messId}/leave`);
+    },
 };

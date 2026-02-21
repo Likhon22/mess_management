@@ -1,7 +1,7 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { Users, Shield, Crown, ChefHat, Settings, UserPlus, AlertCircle, Copy, X, Star, User } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { Users, Shield, Crown, ChefHat, Settings, UserPlus, AlertCircle, Copy, X, Star, User, LogOut } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { messService, Role, MessMember } from '@/services/mess.service';
 import { useMessContext } from '@/contexts/MessContext';
@@ -18,10 +18,13 @@ const roleConfig: Record<string, { label: string; icon: any; color: string; bgCo
 export default function MessDetailsPage() {
     const { isAdmin } = useMessContext();
     const params = useParams();
+    const router = useRouter();
     const messId = decodeURIComponent(params.id as string);
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showRequestsModal, setShowRequestsModal] = useState(false);
+    const [showLeaveModal, setShowLeaveModal] = useState(false);
     const [isApproving, setIsApproving] = useState<string | null>(null);
+    const [isLeaving, setIsLeaving] = useState(false);
 
     // Fetch mess details from API
     const { data: mess, isLoading, error } = useQuery({
@@ -31,6 +34,20 @@ export default function MessDetailsPage() {
 
     const [selectedMember, setSelectedMember] = useState<MessMember | null>(null);
     const [isUpdatingRole, setIsUpdatingRole] = useState(false);
+
+    const handleLeaveMess = async () => {
+        setIsLeaving(true);
+        try {
+            await messService.leaveMess(messId);
+            toast.success('Successfully left the mess');
+            router.push('/dashboard/mess');
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || err.message || 'Failed to leave mess');
+        } finally {
+            setIsLeaving(false);
+            setShowLeaveModal(false);
+        }
+    };
 
     const handleRoleToggle = async (member: MessMember, role: Role) => {
         setIsUpdatingRole(true);
@@ -110,12 +127,21 @@ export default function MessDetailsPage() {
                     <h1 className="text-2xl font-bold text-foreground">{mess.name}</h1>
                     <p className="text-muted-foreground mt-1">ID: {mess.id}</p>
                 </div>
-                <Link
-                    href="/dashboard/mess"
-                    className="text-emerald-600 hover:text-emerald-700 font-medium"
-                >
-                    ← Back to Messes
-                </Link>
+                <div className="flex items-center space-x-3">
+                    <button
+                        onClick={() => setShowLeaveModal(true)}
+                        className="flex items-center space-x-2 text-rose-600 hover:text-rose-700 font-bold text-sm bg-rose-50 dark:bg-rose-900/20 px-4 py-2 rounded-xl transition-all border border-transparent hover:border-rose-100"
+                    >
+                        <LogOut className="w-5 h-5" />
+                        <span className="hidden sm:inline">Leave Mess</span>
+                    </button>
+                    <Link
+                        href="/dashboard/mess"
+                        className="bg-card border border-border px-4 py-2 rounded-xl text-foreground hover:bg-muted transition-all font-medium flex items-center"
+                    >
+                        ← <span className="ml-1 hidden sm:inline">Back</span>
+                    </Link>
+                </div>
             </div>
 
             {/* Quick Stats */}
@@ -302,14 +328,20 @@ export default function MessDetailsPage() {
                                     </button>
 
                                     <button
-                                        disabled
-                                        className="w-full flex items-center justify-between p-4 rounded-xl border-2 bg-muted border-border text-muted-foreground cursor-not-allowed opacity-60"
+                                        onClick={() => handleRoleToggle(selectedMember, 'admin')}
+                                        disabled={isUpdatingRole}
+                                        className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${selectedMember.roles.includes('admin')
+                                            ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-900/50 text-indigo-900 dark:text-indigo-300'
+                                            : 'bg-card border-border text-muted-foreground hover:border-emerald-200 dark:hover:border-emerald-900/50'
+                                            }`}
                                     >
                                         <div className="flex items-center space-x-3">
-                                            <Shield className="w-5 h-5 text-muted-foreground" />
+                                            <Shield className={`w-5 h-5 ${selectedMember.roles.includes('admin') ? 'text-indigo-500' : 'text-muted-foreground'}`} />
                                             <span className="font-bold">Admin Role</span>
                                         </div>
-                                        <span className="text-[10px] font-black uppercase">Protected</span>
+                                        <div className={`w-10 h-6 rounded-full relative transition-colors ${selectedMember.roles.includes('admin') ? 'bg-indigo-500' : 'bg-muted'}`}>
+                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${selectedMember.roles.includes('admin') ? 'translate-x-5' : 'translate-x-1'}`} />
+                                        </div>
                                     </button>
                                 </div>
                             </div>
@@ -435,6 +467,39 @@ export default function MessDetailsPage() {
                                 className="w-full py-3 bg-muted text-foreground rounded-xl font-semibold hover:bg-accent transition-colors"
                             >
                                 Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Leave Mess Modal */}
+            {showLeaveModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-card rounded-2xl w-full max-w-md p-8 shadow-2xl relative border border-border">
+                        <div className="text-center mb-6">
+                            <div className="w-20 h-20 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <LogOut className="w-10 h-10 text-rose-600 dark:text-rose-400" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-foreground">Leave Mess?</h3>
+                            <p className="text-muted-foreground mt-2">
+                                Are you sure you want to leave this mess? Your financial records will remain for audit purposes.
+                            </p>
+                        </div>
+
+                        <div className="flex space-x-3">
+                            <button
+                                onClick={() => setShowLeaveModal(false)}
+                                className="flex-1 py-3 bg-muted text-foreground rounded-xl font-semibold hover:bg-accent transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleLeaveMess}
+                                disabled={isLeaving}
+                                className="flex-1 py-3 bg-rose-600 text-white rounded-xl font-semibold hover:bg-rose-700 transition-all shadow-lg shadow-rose-200 dark:shadow-none disabled:bg-rose-400"
+                            >
+                                {isLeaving ? 'Leaving...' : 'Yes, Leave'}
                             </button>
                         </div>
                     </div>

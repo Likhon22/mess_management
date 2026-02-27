@@ -1,13 +1,25 @@
 'use client';
 
 import { useMe } from '@/hooks/useAuth';
-import { Plus, Users, DollarSign, Utensils, Bell, ArrowRight } from 'lucide-react';
+import { Plus, Users, DollarSign, Utensils, Bell, ArrowRight, Copy, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useMessContext } from '@/contexts/MessContext';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function DashboardPage() {
     const { data: user } = useMe();
     const { pendingRequestsCount, isAdmin, currentMessId } = useMessContext();
+    const [isCopied, setIsCopied] = useState(false);
+
+    const handleCopyCode = () => {
+        if (currentMessId) {
+            navigator.clipboard.writeText(currentMessId);
+            setIsCopied(true);
+            toast.success('Join code copied to clipboard!');
+            setTimeout(() => setIsCopied(false), 2000);
+        }
+    };
 
     const stats = [
         { label: 'Active Messes', value: user?.messes?.length || 0, icon: Users, color: 'bg-blue-50 text-blue-600' },
@@ -33,29 +45,68 @@ export default function DashboardPage() {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl animate-pulse"></div>
             </div>
 
-            {/* Pending Requests Alert */}
-            {isAdmin && pendingRequestsCount > 0 && (
-                <Link
-                    href={`/dashboard/mess/${currentMessId}`}
-                    className="group flex items-center justify-between p-5 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/50 rounded-2xl shadow-sm hover:shadow-md transition-all active:scale-[0.98] relative overflow-hidden"
-                >
-                    <div className="absolute inset-0 bg-gradient-to-r from-rose-500/5 to-transparent"></div>
-                    <div className="flex items-center space-x-4 relative z-10">
-                        <div className="w-12 h-12 bg-rose-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-rose-200 dark:shadow-none animate-bounce-slow">
-                            <Bell className="w-6 h-6" />
+            {/* Admin Tools Section */}
+            {isAdmin && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Pending Requests Alert */}
+                    {pendingRequestsCount > 0 && (
+                        <Link
+                            href={`/dashboard/mess/${currentMessId}`}
+                            className="group flex items-center justify-between p-5 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/50 rounded-2xl shadow-sm hover:shadow-md transition-all active:scale-[0.98] relative overflow-hidden"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-rose-500/5 to-transparent"></div>
+                            <div className="flex items-center space-x-4 relative z-10">
+                                <div className="w-12 h-12 bg-rose-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-rose-200 dark:shadow-none animate-bounce-slow">
+                                    <Bell className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h4 className="text-rose-900 dark:text-rose-200 font-black text-lg">Pending Requests</h4>
+                                    <p className="text-rose-700/70 dark:text-rose-400 text-sm font-medium">
+                                        <span className="font-black scale-110 px-1 inline-block">{pendingRequestsCount}</span> members waiting
+                                    </p>
+                                </div>
+                            </div>
+                            <ArrowRight className="w-5 h-5 text-rose-400 group-hover:translate-x-1 transition-transform relative z-10" />
+                        </Link>
+                    )}
+
+                    {/* Invite Card */}
+                    {currentMessId && (
+                        <div className="group flex items-center justify-between p-5 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50 rounded-2xl shadow-sm hover:shadow-md transition-all relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent"></div>
+                            <div className="flex items-center space-x-4 relative z-10">
+                                <div className="w-12 h-12 bg-blue-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 dark:shadow-none">
+                                    <Plus className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h4 className="text-blue-900 dark:text-blue-200 font-black text-lg text-nowrap">Invite Members</h4>
+                                    <p className="text-blue-700/70 dark:text-blue-400 text-sm font-medium">
+                                        Join Code: <span className="font-black font-mono select-all">{currentMessId}</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleCopyCode}
+                                className={`p-2.5 rounded-xl border transition-all active:scale-95 flex items-center space-x-2 relative z-10 ${isCopied
+                                    ? 'bg-emerald-500 border-emerald-500 text-white'
+                                    : 'bg-white dark:bg-blue-900/40 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800'
+                                    }`}
+                            >
+                                {isCopied ? (
+                                    <>
+                                        <Check className="w-4 h-4" />
+                                        <span className="text-xs font-bold">Copied!</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy className="w-4 h-4" />
+                                        <span className="text-xs font-bold">Copy</span>
+                                    </>
+                                )}
+                            </button>
                         </div>
-                        <div>
-                            <h4 className="text-rose-900 dark:text-rose-200 font-black text-lg">Pending Join Requests</h4>
-                            <p className="text-rose-700/70 dark:text-rose-400 text-sm font-medium">
-                                There are <span className="font-black  scale-110 px-1 inline-block">{pendingRequestsCount}</span> members waiting to join your mess
-                            </p>
-                        </div>
-                    </div>
-                    <div className="hidden sm:flex items-center space-x-2 text-rose-600 dark:text-rose-400 font-bold text-sm bg-white dark:bg-rose-900/40 px-4 py-2 rounded-xl border border-rose-200 dark:border-rose-800 shadow-sm transition-transform group-hover:translate-x-2 relative z-10">
-                        <span>Review Now</span>
-                        <ArrowRight className="w-4 h-4" />
-                    </div>
-                </Link>
+                    )}
+                </div>
             )}
 
             {/* Stats */}

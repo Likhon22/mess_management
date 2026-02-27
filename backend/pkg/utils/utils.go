@@ -35,3 +35,18 @@ func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
 }
+
+func ValidatePhone(phone string) error {
+	if len(phone) != 11 {
+		return fmt.Errorf("phone number must be exactly 11 digits")
+	}
+	if !strings.HasPrefix(phone, "01") {
+		return fmt.Errorf("phone number must start with 01")
+	}
+	for _, char := range phone {
+		if char < '0' || char > '9' {
+			return fmt.Errorf("phone number must contain only digits")
+		}
+	}
+	return nil
+}

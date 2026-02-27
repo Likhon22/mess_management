@@ -39,6 +39,9 @@ func main() {
 	financeHandler := handlers.NewFinanceHandler(financeService)
 	feedHandler := handlers.NewFeedHandler(feedService)
 
+	// --- Background Services ---
+	services.StartLogCleaner()
+
 	// --- Router ---
 	r := router.NewRouter(cfg, authHandler, messHandler, financeHandler, feedHandler)
 

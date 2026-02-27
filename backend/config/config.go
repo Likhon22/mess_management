@@ -3,6 +3,8 @@ package config
 import (
 	"log"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -13,6 +15,12 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
+	// Load .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found, using system environment variables and fallback values")
+	}
+
 	return &Config{
 		Port:      getEnv("PORT", "8080"),
 		MongoURI:  getEnv("MONGO_URI", "mongodb://localhost:27017"),

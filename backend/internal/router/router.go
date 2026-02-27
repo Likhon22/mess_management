@@ -14,7 +14,15 @@ func NewRouter(
 	financeHandler *handlers.FinanceHandler,
 	feedHandler *handlers.FeedHandler,
 ) *gin.Engine {
-	r := gin.Default()
+	r := gin.New() // Use New instead of Default to avoid default logger
+
+	// Request ID Middleware
+	r.Use(RequestIDMiddleware())
+
+	// Structured Logger Middleware
+	r.Use(LoggerMiddleware())
+
+	r.Use(gin.Recovery())
 
 	// CORS Middleware
 	r.Use(CORSMiddleware())

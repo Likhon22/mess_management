@@ -33,6 +33,10 @@ func (h *AuthHandler) Signup(c *gin.Context) {
 		status := http.StatusInternalServerError
 		if err.Error() == "number already exist" {
 			status = http.StatusConflict
+		} else if err.Error() == "phone number must be exactly 11 digits" ||
+			err.Error() == "phone number must start with 01" ||
+			err.Error() == "phone number must contain only digits" {
+			status = http.StatusBadRequest
 		}
 		utils.SendError(c, status, err.Error(), err)
 		return

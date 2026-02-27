@@ -18,6 +18,11 @@ func NewUserService(repo domain.UserRepository, cfg *config.Config) *UserService
 }
 
 func (s *UserService) Register(ctx context.Context, name, phone, password string) (*domain.User, string, error) {
+	// Validate phone
+	if err := utils.ValidatePhone(phone); err != nil {
+		return nil, "", err
+	}
+
 	// Check if phone exists
 	existing, _ := s.repo.GetByPhone(ctx, phone)
 	if existing != nil {

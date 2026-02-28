@@ -8,10 +8,8 @@ func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
 
-		// Allow localhost and Vercel production domain
-		if origin == "http://localhost:3000" ||
-			origin == "http://localhost:3001" ||
-			origin == "https://mess-management-silk.vercel.app" {
+		// Allow any origin dynamically to support all environments
+		if origin != "" {
 			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 		}
 

@@ -29,7 +29,7 @@ export default function MealsPage() {
     });
 
     // Fetch Meals
-    const { data: remoteMeals = [], isLoading: isMealsLoading } = useQuery({
+    const { data: remoteMeals, isLoading: isMealsLoading } = useQuery({
         queryKey: ['meals', currentMessId, selectedMonth],
         queryFn: () => currentMessId ? financeService.getDailyMeals(currentMessId, selectedMonth) : [],
         enabled: !!currentMessId,

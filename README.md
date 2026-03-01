@@ -30,8 +30,13 @@
 ### 🔒 History & Security
 - **Month Locking**: Financial data is locked at the end of the month to prevent tampering.
 - **Unlock Requests**: Managers can request Admins to unlock past months for corrections.
+- **Production Logging**: Robust structured logging with Request ID traceability and monthly log rotations.
+- **Phone Validation**: Strict Bangladesh mobile number validation (11 digits, 01 prefix).
 
----
+### 🖥️ Dashboard & UX
+- **Actionable Alerts**: Immediate notifications for admins regarding pending join requests.
+- **Quick Invites**: Copyable mess join codes directly on the dashboard for easy sharing.
+- **Mobile First**: Fully responsive design for managing your mess on the go.
 
 ## 🛠 Tech Stack
 
@@ -46,7 +51,9 @@
 - **Language**: Go (Golang)
 - **Framework**: Gin Gonic
 - **Database**: MongoDB (Official Go Driver)
-- **Auth**: JWT (JSON Web Tokens) with Argon2 hashing
+- **Auth**: JWT (JSON Web Tokens) with bcrypt hashing
+- **Config**: Environment-based configuration via `.env`
+- **Logging**: High-granularity file-logging with automated monthly cleanup
 
 ---
 
@@ -102,13 +109,26 @@ amar-dera/
 ├── backend/            # Go Backend (Clean Architecture)
 │   ├── cmd/            # Entry points
 │   ├── internal/       # Core logic (Domain, Services, Handlers, Repos)
-│   └── pkg/            # Common utilities
+│   ├── pkg/            # Common utilities
+│   └── logs/           # Structured monthly/daily logs (Auto-generated)
 ├── frontend/           # Next.js Frontend
 │   ├── app/            # Routes & Pages
 │   ├── components/     # UI Components
 │   └── services/       # API integration
 └── postman.json        # API Collection for testing
 ```
+
+---
+
+## 🌐 Deployment
+
+The system is designed for a hybrid deployment strategy to maximize performance and reliability:
+
+- **Frontend**: Best deployed on **Vercel** for optimal Next.js performance.
+- **Backend**: Best deployed on **Render** to support persistent file-logging and background cleanup tasks.
+
+### Environment Handling
+Ensure all keys from `.env` (Backend) and `.env.local` (Frontend) are added to your respective deployment platforms' environment variables.
 
 ---
 

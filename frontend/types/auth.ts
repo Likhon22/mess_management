@@ -11,7 +11,9 @@ export interface APIResponse<T = any> {
 export interface User {
     id: string;
     name: string;
-    phone: string;
+    email: string;
+    avatar?: string;
+    phone?: string;
     messes: string[];
     join_requests?: string[];
 }
@@ -21,13 +23,7 @@ export interface AuthResponse {
     token: string;
 }
 
-export interface LoginCredentials {
-    phone: string;
-    password: string;
+export interface GoogleLoginPayload {
+    credential: string;
 }
 
-export interface SignupData {
-    name: string;
-    phone: string;
-    password: string;
-}

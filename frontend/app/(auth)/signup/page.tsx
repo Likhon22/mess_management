@@ -1,91 +1,78 @@
 'use client';
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useSignup } from '@/hooks/useAuth';
-import type { SignupData } from '@/types/auth';
+import { useGoogleLogin } from '@/hooks/useAuth';
+import { GoogleLogin } from '@react-oauth/google';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 export default function SignupPage() {
-    const { register, handleSubmit, formState: { errors } } = useForm<SignupData>();
-    const signup = useSignup();
+    const googleLogin = useGoogleLogin();
 
-    const onSubmit = async (data: SignupData) => {
-        try {
-            await signup.mutateAsync(data);
-            toast.success('Account created successfully!');
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || err.message || 'Signup failed';
-            toast.error(errorMessage);
+    const handleSuccess = async (credentialResponse: any) => {
+        if (credentialResponse.credential) {
+            try {
+                await googleLogin.mutateAsync(credentialResponse.credential);
+                toast.success('Account created successfully!');
+            } catch (err: any) {
+                toast.error(err.message || 'Signup failed');
+            }
         }
     };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
-                <div className="bg-white rounded-2xl shadow-xl p-8">
-                    <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">আমার ডেরা</h1>
-                        <p className="text-gray-600">Create your mess account</p>
-                    </div>
+                <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-12 relative overflow-hidden">
+                    {/* Decorative elements */}
+                    <div className="absolute top-0 right-0 -tr-10 -mr-10 w-32 h-32 bg-emerald-100 rounded-full opacity-50 blur-2xl"></div>
+                    <div className="absolute bottom-0 left-0 -bl-10 -ml-10 w-32 h-32 bg-teal-100 rounded-full opacity-50 blur-2xl"></div>
 
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                                Full Name
-                            </label>
-                            <input
-                                {...register('name', { required: 'Name is required' })}
-                                type="text"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-gray-900"
-                                placeholder="John Doe"
-                            />
-                            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
+                    <div className="relative z-10">
+                        <div className="text-center mb-10">
+                            <div className="w-20 h-20 bg-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-200">
+                                <span className="text-4xl">✨</span>
+                            </div>
+                            <h1 className="text-4xl font-black text-gray-900 mb-3 tracking-tight">নতুন অ্যাকাউন্ট</h1>
+                            <p className="text-gray-500 font-medium">Join your mess and simplify shared living</p>
                         </div>
 
-                        <div>
-                            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                                Phone Number
-                            </label>
-                            <input
-                                {...register('phone', { required: 'Phone is required', pattern: { value: /^01[0-9]{9}$/, message: 'Invalid phone number' } })}
-                                type="tel"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-gray-900"
-                                placeholder="01700000000"
-                            />
-                            {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>}
+                        <div className="space-y-6">
+                            <div className="flex justify-center">
+                                <GoogleLogin
+                                    onSuccess={handleSuccess}
+                                    onError={() => {
+                                        toast.error('Signup Failed');
+                                    }}
+                                    useOneTap
+                                    theme="filled_blue"
+                                    shape="pill"
+                                    text="signup_with"
+                                    width="100%"
+                                />
+                            </div>
+
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-gray-100"></div>
+                                </div>
+                                <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="bg-white px-4 text-gray-400 font-bold tracking-widest">Easy Onboarding</span>
+                                </div>
+                            </div>
+
+                            <div className="text-center space-y-4">
+                                <p className="text-gray-600">
+                                    Already have an account?{' '}
+                                    <Link href="/login" className="text-emerald-600 hover:text-emerald-700 font-bold underline">
+                                        Login here
+                                    </Link>
+                                </p>
+
+                                <p className="text-xs text-gray-400 leading-relaxed px-4">
+                                    By creating an account, you agree to our <span className="text-emerald-600 font-bold underline cursor-pointer">Terms</span> and <span className="text-emerald-600 font-bold underline cursor-pointer">Privacy Policy</span>.
+                                </p>
+                            </div>
                         </div>
-
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                                Password
-                            </label>
-                            <input
-                                {...register('password', { required: 'Password is required', minLength: { value: 6, message: 'Password must be at least 6 characters' } })}
-                                type="password"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-gray-900"
-                                placeholder="••••••••"
-                            />
-                            {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={signup.isPending}
-                            className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-semibold py-3 rounded-lg transition-colors"
-                        >
-                            {signup.isPending ? 'Creating account...' : 'Create Account'}
-                        </button>
-                    </form>
-
-                    <div className="mt-6 text-center">
-                        <p className="text-gray-600">
-                            Already have an account?{' '}
-                            <Link href="/login" className="text-emerald-600 hover:text-emerald-700 font-medium">
-                                Login
-                            </Link>
-                        </p>
                     </div>
                 </div>
             </div>

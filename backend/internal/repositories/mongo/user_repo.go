@@ -48,6 +48,18 @@ func (r *UserRepository) GetByPhone(ctx context.Context, phone string) (*domain.
 	return &user, nil
 }
 
+func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
+	var user domain.User
+	err := r.collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
 func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
 	filter := bson.M{"_id": user.ID}
 	update := bson.M{"$set": user}

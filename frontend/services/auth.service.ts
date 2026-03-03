@@ -1,26 +1,17 @@
 import api from '@/lib/api';
-import type { APIResponse, AuthResponse, LoginCredentials, SignupData, User } from '@/types/auth';
+import type { APIResponse, AuthResponse, User } from '@/types/auth';
 
 export const authService = {
-    async login(credentials: LoginCredentials): Promise<AuthResponse> {
-        const { data } = await api.post<APIResponse<AuthResponse>>('/auth/login', credentials);
+    async googleLogin(credential: string): Promise<AuthResponse> {
+        const { data } = await api.post<APIResponse<AuthResponse>>('/auth/google', { credential });
         if (data.success && data.data) {
             localStorage.setItem('token', data.data.token);
             localStorage.setItem('user', JSON.stringify(data.data.user));
             return data.data;
         }
-        throw new Error(data.message || 'Login failed');
+        throw new Error(data.message || 'Google login failed');
     },
 
-    async signup(signupData: SignupData): Promise<AuthResponse> {
-        const { data } = await api.post<APIResponse<AuthResponse>>('/auth/signup', signupData);
-        if (data.success && data.data) {
-            localStorage.setItem('token', data.data.token);
-            localStorage.setItem('user', JSON.stringify(data.data.user));
-            return data.data;
-        }
-        throw new Error(data.message || 'Signup failed');
-    },
 
     async getMe(): Promise<User> {
         const { data } = await api.get<APIResponse<User>>('/users/me');

@@ -39,8 +39,7 @@ func NewRouter(
 		// Auth Routes (Public)
 		auth := api.Group("/auth")
 		{
-			auth.POST("/signup", authHandler.Signup)
-			auth.POST("/login", authHandler.Login)
+			auth.POST("/google", authHandler.GoogleLogin)
 		}
 
 		// Protected Routes

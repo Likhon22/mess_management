@@ -8,10 +8,11 @@ import (
 )
 
 type Config struct {
-	Port      string
-	MongoURI  string
-	DBName    string
-	JWTSecret string
+	Port           string
+	MongoURI       string
+	DBName         string
+	JWTSecret      string
+	GoogleClientID string
 }
 
 func LoadConfig() *Config {
@@ -22,10 +23,11 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		Port:      getEnv("PORT", "8080"),
-		MongoURI:  getEnv("MONGO_URI", "mongodb://localhost:27017"),
-		DBName:    getEnv("DB_NAME", "amar_dera"),
-		JWTSecret: getEnv("JWT_SECRET", "super_secret_key"),
+		Port:           getEnv("PORT", "8080"),
+		MongoURI:       getEnv("MONGO_URI", "mongodb://localhost:27017"),
+		DBName:         getEnv("DB_NAME", "amar_dera"),
+		JWTSecret:      getEnv("JWT_SECRET", "super_secret_key"),
+		GoogleClientID: getEnv("GOOGLE_CLIENT_ID", ""),
 	}
 }
 

@@ -68,12 +68,16 @@ export function DesktopSidebar({ user }: { user: User }) {
                 {/* User Info & Logout */}
                 <div className="p-4 border-t border-border">
                     <div className="flex items-center space-x-3 px-4 py-3 mb-2 rounded-xl bg-muted/50">
-                        <div className="w-10 h-10 bg-background rounded-full flex items-center justify-center text-primary font-bold border border-border shadow-sm">
-                            {user.name[0].toUpperCase()}
+                        <div className="w-10 h-10 bg-background rounded-full overflow-hidden flex items-center justify-center text-primary font-bold border border-border shadow-sm">
+                            {user.avatar ? (
+                                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                            ) : (
+                                user.name[0].toUpperCase()
+                            )}
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{user.phone}</p>
+                            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                         </div>
                     </div>
                     <button

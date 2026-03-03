@@ -9,7 +9,6 @@ import type { Role, Mess } from '@/services/mess.service';
 const roleConfig: Record<Role, { label: string; icon: any; color: string; bgColor: string }> = {
     admin: { label: 'Admin', icon: Crown, color: 'text-purple-700 dark:text-purple-400', bgColor: 'bg-purple-100 dark:bg-purple-900/30' },
     manager: { label: 'Manager', icon: Shield, color: 'text-blue-700 dark:text-blue-400', bgColor: 'bg-blue-100 dark:bg-blue-900/30' },
-    meal_manager: { label: 'Meal Manager', icon: ChefHat, color: 'text-orange-700 dark:text-orange-400', bgColor: 'bg-orange-100 dark:bg-orange-900/30' },
     member: { label: 'Member', icon: Users, color: 'text-gray-700 dark:text-gray-400', bgColor: 'bg-gray-100 dark:bg-gray-800' },
 };
 
@@ -69,8 +68,12 @@ export default function ProfilePage() {
                 <div className="px-6 pb-6">
                     {/* Avatar */}
                     <div className="flex items-end -mt-16 mb-6">
-                        <div className="w-32 h-32 bg-card rounded-full border-4 border-card shadow-xl flex items-center justify-center">
-                            <span className="text-4xl font-bold text-primary">{user.name[0]}</span>
+                        <div className="w-32 h-32 bg-card rounded-full border-4 border-card shadow-xl overflow-hidden flex items-center justify-center">
+                            {user.avatar ? (
+                                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <span className="text-4xl font-bold text-primary">{user.name[0]}</span>
+                            )}
                         </div>
                     </div>
 
@@ -84,11 +87,11 @@ export default function ProfilePage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="flex items-center space-x-3 p-4 bg-muted/50 rounded-lg">
                                 <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                                    <Phone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                    <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Phone Number</p>
-                                    <p className="font-semibold text-foreground">{user.phone}</p>
+                                    <p className="text-sm text-muted-foreground">Email Address</p>
+                                    <p className="font-semibold text-foreground">{user.email}</p>
                                 </div>
                             </div>
 

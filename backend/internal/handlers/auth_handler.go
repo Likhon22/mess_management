@@ -16,52 +16,19 @@ func NewAuthHandler(service *services.UserService) *AuthHandler {
 	return &AuthHandler{service: service}
 }
 
-func (h *AuthHandler) Signup(c *gin.Context) {
+func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 	var req struct {
-		Name     string `json:"name" binding:"required"`
-		Phone    string `json:"phone" binding:"required"`
-		Password string `json:"password" binding:"required"`
+		IDToken string `json:"credential" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.SendError(c, http.StatusBadRequest, "invalid request", err)
+		utils.SendError(c, http.StatusBadRequest, "google credential is required", err)
 		return
 	}
 
-	user, token, err := h.service.Register(c.Request.Context(), req.Name, req.Phone, req.Password)
+	user, token, err := h.service.LoginWithGoogle(c.Request.Context(), req.IDToken)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err.Error() == "number already exist" {
-			status = http.StatusConflict
-		} else if err.Error() == "phone number must be exactly 11 digits" ||
-			err.Error() == "phone number must start with 01" ||
-			err.Error() == "phone number must contain only digits" {
-			status = http.StatusBadRequest
-		}
-		utils.SendError(c, status, err.Error(), err)
-		return
-	}
-
-	utils.SendSuccess(c, http.StatusCreated, "user registered", gin.H{
-		"user":  user,
-		"token": token,
-	})
-}
-
-func (h *AuthHandler) Login(c *gin.Context) {
-	var req struct {
-		Phone    string `json:"phone" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.SendError(c, http.StatusBadRequest, "invalid request", err)
-		return
-	}
-
-	user, token, err := h.service.Login(c.Request.Context(), req.Phone, req.Password)
-	if err != nil {
-		utils.SendError(c, http.StatusUnauthorized, "login failed", err)
+		utils.SendError(c, http.StatusUnauthorized, "google login failed", err)
 		return
 	}
 

@@ -6,6 +6,8 @@ import (
 	"amar-dera/pkg/utils"
 	"context"
 	"errors"
+
+	"google.golang.org/api/idtoken"
 )
 
 type UserService struct {
@@ -17,58 +19,59 @@ func NewUserService(repo domain.UserRepository, cfg *config.Config) *UserService
 	return &UserService{repo: repo, cfg: cfg}
 }
 
-func (s *UserService) Register(ctx context.Context, name, phone, password string) (*domain.User, string, error) {
-	// Validate phone
-	if err := utils.ValidatePhone(phone); err != nil {
-		return nil, "", err
-	}
-
-	// Check if phone exists
-	existing, _ := s.repo.GetByPhone(ctx, phone)
-	if existing != nil {
-		return nil, "", errors.New("number already exist")
-	}
-
-	// Hash password
-	hashedPwd, err := utils.HashPassword(password)
+func (s *UserService) LoginWithGoogle(ctx context.Context, idToken string) (*domain.User, string, error) {
+	// Verify Google ID Token
+	payload, err := idtoken.Validate(ctx, idToken, s.cfg.GoogleClientID)
 	if err != nil {
 		return nil, "", err
 	}
 
-	// Generate ID
-	id := utils.GenerateID(name, 4)
-
-	user := &domain.User{
-		ID:           id,
-		Name:         name,
-		Phone:        phone,
-		PasswordHash: hashedPwd,
-		Messes:       []string{},
+	email, ok := payload.Claims["email"].(string)
+	if !ok || email == "" {
+		return nil, "", errors.New("email not found in token")
 	}
 
-	if err := s.repo.Create(ctx, user); err != nil {
-		return nil, "", err
-	}
+	name, _ := payload.Claims["name"].(string)
+	avatar, _ := payload.Claims["picture"].(string)
+	googleID := payload.Subject
 
-	// Generate Token
-	token, err := utils.GenerateJWT(user.ID, s.cfg)
+	// Check if user exists by email
+	user, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {
 		return nil, "", err
 	}
 
-	return user, token, nil
-}
-
-func (s *UserService) Login(ctx context.Context, phone, password string) (*domain.User, string, error) {
-	user, err := s.repo.GetByPhone(ctx, phone)
-	if err != nil || user == nil {
-		return nil, "", errors.New("invalid credentials")
+	if user == nil {
+		// Create new user
+		id := utils.GenerateID(name, 4)
+		user = &domain.User{
+			ID:       id,
+			Name:     name,
+			Email:    email,
+			Avatar:   avatar,
+			GoogleID: googleID,
+			Messes:   []string{},
+		}
+		if err := s.repo.Create(ctx, user); err != nil {
+			return nil, "", err
+		}
+	} else {
+		// Update existing user info
+		updated := false
+		if user.GoogleID == "" {
+			user.GoogleID = googleID
+			updated = true
+		}
+		if user.Avatar != avatar {
+			user.Avatar = avatar
+			updated = true
+		}
+		if updated {
+			_ = s.repo.Update(ctx, user)
+		}
 	}
 
-	if !utils.CheckPasswordHash(password, user.PasswordHash) {
-		return nil, "", errors.New("invalid credentials")
-	}
-
+	// Generate Session Token (JWT)
 	token, err := utils.GenerateJWT(user.ID, s.cfg)
 	if err != nil {
 		return nil, "", err
